@@ -19,7 +19,9 @@ const corsInputs = {
   credentials: true,
 };
 
-app.use(abcCors(corsInputs)).get("/:country", showCountryData);
+app.use(abcCors(corsInputs));
+app.get("/:country", showCountryData);
+app.post("/login", checkUserLogin);
 
 async function showCountryData(server) {
   const { country } = await server.params;
@@ -65,5 +67,18 @@ async function showCountryData(server) {
       },
       400
     );
+  }
+}
+
+async function checkUserLogin(server) {
+  const { email, password } = await server.body;
+  let exists =
+    `IF EXISTS (SELECT email, password FROM wbd-db WHERE AND email = ? AND password = ?)`[
+      (email, password)
+    ];
+  if (exists) {
+    await getSearchPage;
+  } else {
+    throw new Error("User not found");
   }
 }
