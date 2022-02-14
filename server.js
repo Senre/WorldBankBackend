@@ -20,3 +20,35 @@ const corsInputs = {
 };
 
 app.use(abcCors(corsInputs));
+
+app.get('/searchpage' searchPageInfo)
+.post("/login", checkUserLogin);
+
+async function getSearchPage(server) {
+    const query = 
+      `SELECT  shortname, currencyunit, region
+            FROM stories
+            LEFT JOIN votes 
+            ON stories.id = votes.story_id
+            GROUP BY stories.id
+            ORDER BY score DESC`
+    const stories = await [
+      ...db
+        .query(
+        
+        )
+        .asObjects()
+}
+
+async function checkUserLogin(server) {
+  const { email, password } = await server.body;
+  let exists =
+    `IF EXISTS (SELECT email, password FROM wbd-db WHERE AND email = ? AND password = ?)`[
+      (email, password)
+    ];
+  if (exists) {
+    await getSearchPage;
+  } else {
+    throw new Error("User not found");
+  }
+}

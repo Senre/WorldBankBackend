@@ -1,1 +1,10 @@
 database.sqlite 2
+wbd-db/Country.csv
+.gitignore
+wbd-db/CountryNotes.csv
+wbd-db/database.sqlite
+wbd-db/Footnotes.csv
+wbd-db/Indicators.csv
+.gitignore
+wbd-db/Series.csv
+wbd-db/SeriesNotes.csv
