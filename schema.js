@@ -1,12 +1,12 @@
 import { DB } from "https://deno.land/x/sqlite/mod.ts";
 
 try {
-  await Deno.remove("users.db");
+  await Deno.remove("wbd-db.db");
 } catch {
   // nothing to remove
 }
 
-const db = new DB("./users.db");
+const db = new DB("./wbd-db.db");
 
 await db.query(
   `CREATE TABLE users (
