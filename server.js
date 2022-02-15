@@ -25,6 +25,7 @@ const corsInputs = {
 
 app.use(abcCors(corsInputs));
 app.get("/:country", showCountryData);
+app.get("/indicators", getAllIndicators);
 app.post("/login", checkUserLogin);
 app.start({ port: PORT });
 
@@ -83,6 +84,14 @@ async function showCountryData(server) {
       400
     );
   }
+}
+
+async function getAllIndicators(server) {
+  const response = await client.queryObject({
+    text: "SELECT DISTINCT IndicatorName FROM Indicators",
+  });
+
+  server.json(response, 200);
 }
 
 async function checkUserLogin(server) {
