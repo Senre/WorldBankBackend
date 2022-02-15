@@ -24,13 +24,13 @@ const corsInputs = {
   credentials: true,
 };
 
-app.use(abcCors(corsInputs));
-app.get("/:country", showCountryData);
-app.get("/indicators", getAllIndicators);
-app.post("/login", checkUserLogin);
+app.use(abcCors(corsInputs))
+app.get("/:country", showCountryData)
+app.get("/indicators", getAllIndicators)
+app.post("/login", checkUserLogin)
 app.post("/sessions", createSession)
-app.post("/register", registerUser);
-app.start({ port: PORT });
+app.post("/register", registerUser)
+app.start({ port: PORT })
 
 async function registerUser(server) {
   const { email, password } = await server.body;
@@ -46,7 +46,8 @@ async function registerUser(server) {
       const query = (`INSERT INTO users (email, password, salt, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'))`,[email, passwordEncrypted, salt])
       await db.query(query)
       return server.json({success: "User registered successfully."}, 200)
-  }    
+  }  
+}  
 
 async function createSession(server) {
   const sessionId = v4.generate();
@@ -195,4 +196,6 @@ async function checkUserLogin(server) {
 }
 
 console.log(`Server running on localhost:/${PORT}`);
+
+
 
