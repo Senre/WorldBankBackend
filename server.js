@@ -1,18 +1,14 @@
 import { Application } from "https://deno.land/x/abc@v1.3.3/mod.ts";
-import { DB } from "https://deno.land/x/sqlite@v2.5.0/mod.ts";
 import { abcCors } from "https://deno.land/x/cors/mod.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
 import { Client } from "https://deno.land/x/postgres@v0.15.0/mod.ts";
 
-const db = new DB("database.sqlite");
 const app = new Application();
 const PORT = 8080;
 
 const config =
   "postgres://czreijar:TJ2StTuQIl2CoRoinQTwPxk8pBGfdf6t@kandula.db.elephantsql.com/czreijar";
-
 const client = new Client(config);
-
 await client.connect();
 
 const corsInputs = {
@@ -27,48 +23,47 @@ const corsInputs = {
   credentials: true,
 };
 
-// const [countryExists] = await client.queryObject({
-//   text: "SELECT ShortName FROM Country WHERE ShortName = $1",
-//   args: ["Afghanistan"],
-// });
-// console.log(countryExists);
 app.use(abcCors(corsInputs));
 app.get("/:country", showCountryData);
 app.post("/login", checkUserLogin);
 app.start({ port: PORT });
+
 async function showCountryData(server) {
   const { country } = await server.params;
   const countryDecoded = decodeURIComponent(country);
+
   const { indicator, startYear, endYear } = await server.queryParams;
   const indicatorDecoded = `%${decodeURIComponent(indicator)}%`;
 
-  const [countryExists] = [
-    ...(await db.query(`SELECT ShortName FROM Country WHERE ShortName = ?`, [
-      countryDecoded,
-    ])),
-  ];
-  // const [countryExists] = client.queryObject({
-  //   text: "SELECT ShortName FROM Country WHERE ShortName = $1",
-  //   args: [countryDecoded],
-  // });
-  if (countryExists) {
-    let query = `SELECT * FROM Indicators WHERE countryName = ?`;
-    const queryFilters = [countryDecoded];
+  const countryExists = await client.queryObject({
+    text: "SELECT ShortName FROM Countries WHERE ShortName = $1",
+    args: [countryDecoded],
+  });
+  if (countryExists.rows[0]) {
+    let query = `SELECT * FROM Indicators WHERE countryName = $countryName`;
+    const queryFilters = { countryName: countryDecoded };
 
     if (indicator) {
-      query += ` AND IndicatorName LIKE ?`;
-      queryFilters.push(indicatorDecoded);
+      query += ` AND IndicatorName LIKE $indicatorName`;
+      queryFilters.indicatorName = indicatorDecoded;
     }
     if (startYear) {
-      query += ` AND Year BETWEEN ? AND ?`;
-      queryFilters.push(startYear, endYear);
+      query += ` AND Year BETWEEN $startYear AND $endYear`;
+      queryFilters.startYear = startYear;
+      queryFilters.endYear = endYear;
     }
 
-    query += ` GROUP BY IndicatorName`;
+    query += ` ORDER BY IndicatorName`;
 
-    const countryData = [...(await db.query(query, queryFilters).asObjects())];
-    if (countryData) {
-      server.json(countryData, 200);
+    const countryData = await client.queryObject({
+      text: query,
+      args: queryFilters,
+    });
+
+    const countryDataRows = countryData.rows;
+
+    if (countryDataRows[0]) {
+      server.json(countryDataRows, 200);
     } else {
       server.json(
         {
@@ -104,12 +99,3 @@ async function checkUserLogin(server) {
 }
 
 console.log(`Server running on localhost:/${PORT}`);
-
-// console.log(
-//   await client.queryObject({
-//     text: `SELECT * FROM Indicators WHERE countryName = $1`,
-//     args: ["Afghanistan"],
-//   })
-// );
-
-await client.end();
