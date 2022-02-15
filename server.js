@@ -29,7 +29,6 @@ app.post("/login", checkUserLogin);
 app.start({ port: PORT });
 
 async function showCountryData(server) {
-  console.log(await server);
   const { country } = await server.params;
   const countryDecoded = decodeURIComponent(country);
 
