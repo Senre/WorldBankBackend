@@ -19,5 +19,24 @@ await db.query(
   )`
 );
 
+await db.query(
+  `CREATE TABLE sessions (
+    uuid TEXT PRIMARY KEY,
+    created_at DATETIME NOT NULL,
+    user_id INTEGER,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+  )`
+);
+
+await db.query(
+  `CREATE TABLE searches (
+    id TEXT PRIMARY KEY,
+    created_at DATETIME NOT NULL,
+    search_terms 
+    user_id INTEGER,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+  )`
+);
+
 //run using
 // deno run --allow-net --allow-read --allow-write schema.js
