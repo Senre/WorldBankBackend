@@ -35,7 +35,7 @@ app.get("/countries", getAllCountries);
 app.post("/login", checkUserLogin);
 app.post("/sessions", createSession);
 app.post("/register", registerUser);
-app.post("/searches", addSearch);
+app.post("/searches/:user_id", addUserSearch);
 app.start({ port: PORT });
 
 async function createSession(server, user_id) {
@@ -208,6 +208,19 @@ async function checkUserLogin(server) {
   } else {
     server.json({ error: "User not found." }, 404);
   }
+}
+
+async function addUserSearch(server) {
+  const { user_id } = server.params;
+  const { country, indicator, start_year, end_year } = await server.body;
+  console.log(country, indicator, start_year, end_year);
+
+  await db.query(
+    "INSERT INTO searches (created_at, country, indicator, start_year, end_year, user_id) VALUES (datetime('now'), ?, ?, ?, ?, ?)",
+    [country[0], indicator[0], start_year, end_year, user_id]
+  );
+
+  server.json({ success: "search added" }, 200);
 }
 
 console.log(`Server running on localhost:/${PORT}`);
