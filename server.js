@@ -102,7 +102,6 @@ async function showCountryData(server) {
     if (countryDecoded in inconsistentCountryNames) {
       countryName = inconsistentCountryNames[countryDecoded];
     }
-    console.log(countryName);
 
     let query = `SELECT * FROM Indicators WHERE countryName = $countryName`;
     const queryFilters = { countryName: countryName };
