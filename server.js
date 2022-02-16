@@ -148,7 +148,7 @@ async function registerUser(server) {
   const passwordEncrypted = await bcrypt.hash(password, salt);
   let exists = [
     ...(
-      await db.query(`IF EXISTS (SELECT email FROM users WHERE email = ?)`, [
+      await db.query(`EXISTS (SELECT email FROM users WHERE email = ?)`, [
         email,
       ])
     ).asObjects(),
