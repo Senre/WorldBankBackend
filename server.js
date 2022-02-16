@@ -4,6 +4,7 @@ import * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
 import { Client } from "https://deno.land/x/postgres@v0.15.0/mod.ts";
 import { v4 } from "https://deno.land/std/uuid/mod.ts";
 import { DB } from "https://deno.land/x/sqlite@v2.5.0/mod.ts";
+import inconsistentCountryNames from "./inconsistentCountryNames.js";
 
 const app = new Application();
 const PORT = 8080;
@@ -97,8 +98,13 @@ async function showCountryData(server) {
     args: [countryDecoded],
   });
   if (countryExists.rows[0]) {
+    let countryName = countryDecoded;
+    if (countryDecoded in inconsistentCountryNames) {
+      countryName = inconsistentCountryNames[countryDecoded];
+    }
+
     let query = `SELECT * FROM Indicators WHERE countryName = $countryName`;
-    const queryFilters = { countryName: countryDecoded };
+    const queryFilters = { countryName: countryName };
 
     if (indicator) {
       query += ` AND IndicatorName LIKE $indicatorName`;
@@ -146,14 +152,12 @@ async function registerUser(server) {
   const { email, password } = await server.body;
   const salt = await bcrypt.genSalt(8);
   const passwordEncrypted = await bcrypt.hash(password, salt);
-  let exists = [
+  let [checkEmail] = [
     ...(
-      await db.query(`IF EXISTS (SELECT email FROM users WHERE email = ?)`, [
-        email,
-      ])
+      await db.query(`SELECT email FROM users WHERE email = ?`, [email])
     ).asObjects(),
   ];
-  if (exists) {
+  if (checkEmail) {
     return server.json({ error: "User already exists" }, 400);
   } else {
     const query =
@@ -175,7 +179,7 @@ async function getAllIndicators(server) {
 async function checkUserLogin(server) {
   const { email, password } = await server.body;
   let exists =
-    `IF EXISTS (SELECT email, password FROM wbd-db WHERE email = ? AND password = ?)`[
+    `IF EXISTS (SELECT email, password FROM users WHERE email = ? AND password = ?)`[
       (email, password)
     ];
   if (exists) {
