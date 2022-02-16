@@ -151,10 +151,8 @@ async function registerUser(server) {
   if (checkEmail) {
     return server.json({ error: "User already exists" }, 400);
   } else {
-    const query =
-      (`INSERT INTO users (email, password, salt, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'))`,
-      [username, passwordEncrypted, salt]);
-    await db.query(query);
+    const query = `INSERT INTO users (email, password, salt, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'))`;
+    await db.query(query, [username, passwordEncrypted, salt]);
     return server.json({ success: "User registered successfully." }, 200);
   }
 }
