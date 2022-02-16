@@ -146,14 +146,12 @@ async function registerUser(server) {
   const { email, password } = await server.body;
   const salt = await bcrypt.genSalt(8);
   const passwordEncrypted = await bcrypt.hash(password, salt);
-  let exists = [
+  let [checkEmail] = [
     ...(
-      await db.query(`IF EXISTS (SELECT email FROM users WHERE email = ?)`, [
-        email,
-      ])
+      await db.query(`SELECT email FROM users WHERE email = ?`, [email])
     ).asObjects(),
   ];
-  if (exists) {
+  if (checkEmail) {
     return server.json({ error: "User already exists" }, 400);
   } else {
     const query =
