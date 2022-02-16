@@ -36,7 +36,7 @@ app.post("/sessions", createSession);
 app.post("/register", registerUser);
 app.start({ port: PORT });
 
-async function createSession(server) {
+async function createSession(server, user_id) {
   const sessionId = v4.generate();
   await db.query(
     `INSERT INTO sessions (uuid, user_id, created_at) VALUES (?, ?, datetime('now'))`,
@@ -47,7 +47,8 @@ async function createSession(server) {
     ...(
       await db.query("SELECT * FROM users WHERE id = ?", [user_id])
     ).asObjects(),
-  ][0];
+  ];
+  // console.log(user_id);
 
   const expiryDate = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000);
   server.setCookie({
@@ -70,22 +71,22 @@ async function createSession(server) {
   });
 }
 
-// async function getCurrentUser(sessionId) {
-//   const [session] = await [
-//     ...db
-//       .query(
-//         `SELECT * FROM sessions WHERE JULIANDAY(datetime('now')) - JULIANDAY(created_at) < 7 AND uuid = ?`,
-//         [sessionId]
-//       )
-//       .asObjects(),
-//   ];
-//   const [user] = await [
-//     ...db
-//       .query("SELECT * FROM users WHERE id = ?", [session.user_id])
-//       .asObjects(),
-//   ];
-//   return user;
-// }
+async function getCurrentUser(sessionId) {
+  const [session] = await [
+    ...db
+      .query(
+        `SELECT * FROM sessions WHERE JULIANDAY(datetime('now')) - JULIANDAY(created_at) < 7 AND uuid = ?`,
+        [sessionId]
+      )
+      .asObjects(),
+  ];
+  const [user] = await [
+    ...db
+      .query("SELECT * FROM users WHERE id = ?", [session.user_id])
+      .asObjects(),
+  ];
+  return user;
+}
 
 async function showCountryData(server) {
   const { country } = await server.params;
@@ -184,11 +185,16 @@ async function checkUserLogin(server) {
       await db.query("SELECT * FROM users WHERE email = ?", [email])
     ).asObjects(),
   ];
+
+  console.log(checkEmail);
+  console.log("hello");
+
   if (checkEmail.length === 1) {
-    if (await bcrypt.compare(password, salt)) {
+    if (await bcrypt.compare(password, checkEmail[0].salt)) {
       createSession(server, checkEmail[0].id);
       return server.json(checkEmail[0], 200);
     } else {
+      console.log("test");
       server.json({ error: "Incorrect password" }, 400);
     }
   } else {
