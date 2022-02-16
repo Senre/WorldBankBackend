@@ -99,10 +99,12 @@ async function showCountryData(server) {
       query += ` AND IndicatorName LIKE $indicatorName`;
       queryFilters.indicatorName = indicatorDecoded;
     }
-    if (startYear) {
+    if (startYear || endYear) {
+      const defStartYear = 1960;
+      const defEndYear = 2015;
       query += ` AND Year BETWEEN $startYear AND $endYear`;
-      queryFilters.startYear = startYear;
-      queryFilters.endYear = endYear;
+      queryFilters.startYear = startYear || defStartYear;
+      queryFilters.endYear = endYear || defEndYear;
     }
 
     query += ` ORDER BY IndicatorName`;
