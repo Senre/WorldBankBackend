@@ -29,6 +29,7 @@ const corsInputs = {
 app.use(abcCors(corsInputs));
 app.get("/:country", showCountryData);
 app.get("/indicators", getAllIndicators);
+app.get("/countries", getAllCountries);
 app.post("/login", checkUserLogin);
 app.post("/sessions", createSession);
 app.post("/register", registerUser);
@@ -165,6 +166,14 @@ async function registerUser(server) {
 async function getAllIndicators(server) {
   const response = await client.queryObject({
     text: "SELECT DISTINCT IndicatorName FROM Indicators",
+  });
+
+  server.json(response, 200);
+}
+
+async function getAllCountries(server) {
+  const response = await client.queryObject({
+    text: "SELECT DISTINCT ShortName FROM Countries",
   });
 
   server.json(response, 200);
