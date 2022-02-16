@@ -25,6 +25,7 @@ const corsInputs = {
     "User-Agent",
   ],
   credentials: true,
+  origin: /^.+localhost:(3000)$/,
 };
 
 app.use(abcCors(corsInputs));
@@ -69,22 +70,22 @@ async function createSession(server) {
   });
 }
 
-async function getCurrentUser(sessionId) {
-  const [session] = await [
-    ...db
-      .query(
-        `SELECT * FROM sessions WHERE JULIANDAY(datetime('now')) - JULIANDAY(created_at) < 7 AND uuid = ?`,
-        [sessionId]
-      )
-      .asObjects(),
-  ];
-  const [user] = await [
-    ...db
-      .query("SELECT * FROM users WHERE id = ?", [session.user_id])
-      .asObjects(),
-  ];
-  return user;
-}
+// async function getCurrentUser(sessionId) {
+//   const [session] = await [
+//     ...db
+//       .query(
+//         `SELECT * FROM sessions WHERE JULIANDAY(datetime('now')) - JULIANDAY(created_at) < 7 AND uuid = ?`,
+//         [sessionId]
+//       )
+//       .asObjects(),
+//   ];
+//   const [user] = await [
+//     ...db
+//       .query("SELECT * FROM users WHERE id = ?", [session.user_id])
+//       .asObjects(),
+//   ];
+//   return user;
+// }
 
 async function showCountryData(server) {
   const { country } = await server.params;
@@ -178,14 +179,20 @@ async function getAllIndicators(server) {
 
 async function checkUserLogin(server) {
   const { email, password } = await server.body;
-  let exists =
-    `IF EXISTS (SELECT email, password FROM users WHERE email = ? AND password = ?)`[
-      (email, password)
-    ];
-  if (exists) {
-    await getSearchPage;
+  const checkEmail = [
+    ...(
+      await db.query("SELECT * FROM users WHERE email = ?", [email])
+    ).asObjects(),
+  ];
+  if (checkEmail.length === 1) {
+    if (await bcrypt.compare(password, salt)) {
+      createSession(server, checkEmail[0].id);
+      return server.json(checkEmail[0], 200);
+    } else {
+      server.json({ error: "Incorrect password" }, 400);
+    }
   } else {
-    throw new Error("User not found");
+    server.json({ error: "User not found." }, 404);
   }
 }
 
