@@ -31,9 +31,11 @@ const corsInputs = {
 app.use(abcCors(corsInputs));
 app.get("/:country", showCountryData);
 app.get("/indicators", getAllIndicators);
+app.get("/countries", getAllCountries);
 app.post("/login", checkUserLogin);
 app.post("/sessions", createSession);
 app.post("/register", registerUser);
+app.post("/searches", addSearch);
 app.start({ port: PORT });
 
 async function createSession(server, user_id) {
@@ -48,26 +50,28 @@ async function createSession(server, user_id) {
       await db.query("SELECT * FROM users WHERE id = ?", [user_id])
     ).asObjects(),
   ];
-  // console.log(user_id);
+
+  console.log("session");
+  console.log(user);
 
   const expiryDate = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000);
   server.setCookie({
     name: "sessionId",
     value: sessionId,
     expires: expiryDate,
-    path: "/home",
+    path: "/",
   });
   server.setCookie({
     name: "user_id",
     value: user_id,
     expires: expiryDate,
-    path: "/home",
+    path: "/",
   });
   server.setCookie({
     name: "email",
     value: user.email,
     expires: expiryDate,
-    path: "/home",
+    path: "/",
   });
 }
 
@@ -155,7 +159,15 @@ async function registerUser(server) {
 
 async function getAllIndicators(server) {
   const response = await client.queryObject({
-    text: "SELECT DISTINCT IndicatorName FROM Indicators",
+    text: "SELECT DISTINCT IndicatorName FROM Indicators ORDER BY IndicatorName ASC",
+  });
+
+  server.json(response, 200);
+}
+
+async function getAllCountries(server) {
+  const response = await client.queryObject({
+    text: "SELECT DISTINCT ShortName FROM Countries ORDER BY ShortName ASC",
   });
 
   server.json(response, 200);
@@ -170,14 +182,12 @@ async function checkUserLogin(server) {
   ];
 
   console.log(checkEmail);
-  console.log("hello");
 
   if (checkEmail.length === 1) {
-    if (await bcrypt.compare(password, checkEmail[0].salt)) {
+    if (await bcrypt.compare(password, checkEmail[0].password)) {
       createSession(server, checkEmail[0].id);
       return server.json(checkEmail[0], 200);
     } else {
-      console.log("test");
       server.json({ error: "Incorrect password" }, 400);
     }
   } else {
