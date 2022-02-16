@@ -173,7 +173,7 @@ async function getAllIndicators(server) {
 async function checkUserLogin(server) {
   const { email, password } = await server.body;
   let exists =
-    `IF EXISTS (SELECT email, password FROM wbd-db WHERE email = ? AND password = ?)`[
+    `IF EXISTS (SELECT email, password FROM users WHERE email = ? AND password = ?)`[
       (email, password)
     ];
   if (exists) {
