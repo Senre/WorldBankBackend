@@ -4,6 +4,7 @@ import * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
 import { Client } from "https://deno.land/x/postgres@v0.15.0/mod.ts";
 import { v4 } from "https://deno.land/std/uuid/mod.ts";
 import { DB } from "https://deno.land/x/sqlite@v2.5.0/mod.ts";
+import inconsistentCountryNames from "./inconsistentCountryNames.js";
 
 const app = new Application();
 const PORT = 8080;
@@ -97,8 +98,13 @@ async function showCountryData(server) {
     args: [countryDecoded],
   });
   if (countryExists.rows[0]) {
+    let countryName = countryDecoded;
+    if (countryDecoded in inconsistentCountryNames) {
+      countryName = inconsistentCountryNames[countryDecoded];
+    }
+
     let query = `SELECT * FROM Indicators WHERE countryName = $countryName`;
-    const queryFilters = { countryName: countryDecoded };
+    const queryFilters = { countryName: countryName };
 
     if (indicator) {
       query += ` AND IndicatorName LIKE $indicatorName`;
