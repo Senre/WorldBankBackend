@@ -4,6 +4,7 @@ import * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
 import { Client } from "https://deno.land/x/postgres@v0.15.0/mod.ts";
 import { v4 } from "https://deno.land/std/uuid/mod.ts";
 import { DB } from "https://deno.land/x/sqlite@v2.5.0/mod.ts";
+import inconsistentCountryNames from "./inconsistentCountryNames.js";
 
 const app = new Application();
 const PORT = 8080;
@@ -24,6 +25,7 @@ const corsInputs = {
     "User-Agent",
   ],
   credentials: true,
+  origin: /^.+localhost:(3000)$/,
 };
 
 app.use(abcCors(corsInputs));
@@ -69,22 +71,22 @@ async function createSession(server) {
   });
 }
 
-async function getCurrentUser(sessionId) {
-  const [session] = await [
-    ...db
-      .query(
-        `SELECT * FROM sessions WHERE JULIANDAY(datetime('now')) - JULIANDAY(created_at) < 7 AND uuid = ?`,
-        [sessionId]
-      )
-      .asObjects(),
-  ];
-  const [user] = await [
-    ...db
-      .query("SELECT * FROM users WHERE id = ?", [session.user_id])
-      .asObjects(),
-  ];
-  return user;
-}
+// async function getCurrentUser(sessionId) {
+//   const [session] = await [
+//     ...db
+//       .query(
+//         `SELECT * FROM sessions WHERE JULIANDAY(datetime('now')) - JULIANDAY(created_at) < 7 AND uuid = ?`,
+//         [sessionId]
+//       )
+//       .asObjects(),
+//   ];
+//   const [user] = await [
+//     ...db
+//       .query("SELECT * FROM users WHERE id = ?", [session.user_id])
+//       .asObjects(),
+//   ];
+//   return user;
+// }
 
 async function showCountryData(server) {
   const { country } = await server.params;
@@ -98,8 +100,13 @@ async function showCountryData(server) {
     args: [countryDecoded],
   });
   if (countryExists.rows[0]) {
+    let countryName = countryDecoded;
+    if (countryDecoded in inconsistentCountryNames) {
+      countryName = inconsistentCountryNames[countryDecoded];
+    }
+
     let query = `SELECT * FROM Indicators WHERE countryName = $countryName`;
-    const queryFilters = { countryName: countryDecoded };
+    const queryFilters = { countryName: countryName };
 
     if (indicator) {
       query += ` AND IndicatorName LIKE $indicatorName`;
@@ -181,14 +188,20 @@ async function getAllCountries(server) {
 
 async function checkUserLogin(server) {
   const { email, password } = await server.body;
-  let exists =
-    `IF EXISTS (SELECT email, password FROM users WHERE email = ? AND password = ?)`[
-      (email, password)
-    ];
-  if (exists) {
-    await getSearchPage;
+  const checkEmail = [
+    ...(
+      await db.query("SELECT * FROM users WHERE email = ?", [email])
+    ).asObjects(),
+  ];
+  if (checkEmail.length === 1) {
+    if (await bcrypt.compare(password, salt)) {
+      createSession(server, checkEmail[0].id);
+      return server.json(checkEmail[0], 200);
+    } else {
+      server.json({ error: "Incorrect password" }, 400);
+    }
   } else {
-    throw new Error("User not found");
+    server.json({ error: "User not found." }, 404);
   }
 }
 
