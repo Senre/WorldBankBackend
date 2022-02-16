@@ -30,7 +30,7 @@ await db.query(
 
 await db.query(
   `CREATE TABLE searches (
-    id TEXT PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME NOT NULL,
     country TEXT NOT NULL,
     indicator TEXT,
