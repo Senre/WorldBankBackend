@@ -32,23 +32,6 @@ app.post("/sessions", createSession)
 app.post("/register", registerUser)
 app.start({ port: PORT })
 
-async function registerUser(server) {
-  const { email, password } = await server.body;
-  const salt = await bcrypt.genSalt(8);
-  const passwordEncrypted = await bcrypt.hash(password, salt)
-  let exists =
-    `IF EXISTS (SELECT email FROM wbd-db WHERE email = ?)`,[
-      email
-    ];
-  if (exists) {
-      return server.json({error: "User already exists"}, 400)
-  } else {
-      const query = (`INSERT INTO users (email, password, salt, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'))`,[email, passwordEncrypted, salt])
-      await db.query(query)
-      return server.json({success: "User registered successfully."}, 200)
-  }  
-}  
-
 async function createSession(server) {
   const sessionId = v4.generate();
   await db.query(
@@ -161,6 +144,7 @@ async function registerUser(server) {
   const { email, password } = await server.body;
   const salt = await bcrypt.genSalt(8);
   const passwordEncrypted = await bcrypt.hash(password, salt)
+
   let exists =
     `IF EXISTS (SELECT email FROM wbd-db WHERE email = ?)`,[
       email
