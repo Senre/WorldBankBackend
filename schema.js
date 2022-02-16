@@ -32,7 +32,10 @@ await db.query(
   `CREATE TABLE searches (
     id TEXT PRIMARY KEY,
     created_at DATETIME NOT NULL,
-    search_terms 
+    country TEXT NOT NULL,
+    indicator TEXT,
+    start_year INTEGER NOT NULL,
+    end_year INTEGER NOT NULL,
     user_id INTEGER,
     FOREIGN KEY(user_id) REFERENCES users(id)
   )`
