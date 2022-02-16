@@ -3,10 +3,12 @@ import { abcCors } from "https://deno.land/x/cors/mod.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
 import { Client } from "https://deno.land/x/postgres@v0.15.0/mod.ts";
 import { v4 } from "https://deno.land/std/uuid/mod.ts";
+import { DB } from "https://deno.land/x/sqlite@v2.5.0/mod.ts";
 
 const app = new Application();
 const PORT = 8080;
 
+const db = new DB("wbd-db.db");
 const config =
   "postgres://czreijar:TJ2StTuQIl2CoRoinQTwPxk8pBGfdf6t@kandula.db.elephantsql.com/czreijar";
 const client = new Client(config);
@@ -24,13 +26,13 @@ const corsInputs = {
   credentials: true,
 };
 
-app.use(abcCors(corsInputs))
-app.get("/:country", showCountryData)
-app.get("/indicators", getAllIndicators)
-app.post("/login", checkUserLogin)
-app.post("/sessions", createSession)
-app.post("/register", registerUser)
-app.start({ port: PORT })
+app.use(abcCors(corsInputs));
+app.get("/:country", showCountryData);
+app.get("/indicators", getAllIndicators);
+app.post("/login", checkUserLogin);
+app.post("/sessions", createSession);
+app.post("/register", registerUser);
+app.start({ port: PORT });
 
 async function createSession(server) {
   const sessionId = v4.generate();
@@ -73,14 +75,14 @@ async function getCurrentUser(sessionId) {
         `SELECT * FROM sessions WHERE JULIANDAY(datetime('now')) - JULIANDAY(created_at) < 7 AND uuid = ?`,
         [sessionId]
       )
-      .asObjects()
-  ]
+      .asObjects(),
+  ];
   const [user] = await [
     ...db
-      .query('SELECT * FROM users WHERE id = ?', [session.user_id])
-      .asObjects()
-  ]
-  return user
+      .query("SELECT * FROM users WHERE id = ?", [session.user_id])
+      .asObjects(),
+  ];
+  return user;
 }
 
 async function showCountryData(server) {
@@ -143,19 +145,23 @@ async function showCountryData(server) {
 async function registerUser(server) {
   const { email, password } = await server.body;
   const salt = await bcrypt.genSalt(8);
-  const passwordEncrypted = await bcrypt.hash(password, salt)
-
-  let exists =
-    `IF EXISTS (SELECT email FROM wbd-db WHERE email = ?)`,[
-      email
-    ];
+  const passwordEncrypted = await bcrypt.hash(password, salt);
+  let exists = [
+    ...(
+      await db.query(`IF EXISTS (SELECT email FROM users WHERE email = ?)`, [
+        email,
+      ])
+    ).asObjects(),
+  ];
   if (exists) {
-      return server.json({error: "User already exists"}, 400)
+    return server.json({ error: "User already exists" }, 400);
   } else {
-      const query = (`INSERT INTO users (email, password, salt, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'))`,[email, passwordEncrypted, salt])
-      await db.query(query)
-      return server.json({success: "User registered successfully."}, 200)
-  }    
+    const query =
+      (`INSERT INTO users (email, password, salt, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'))`,
+      [email, passwordEncrypted, salt]);
+    await db.query(query);
+    return server.json({ success: "User registered successfully." }, 200);
+  }
 }
 
 async function getAllIndicators(server) {
@@ -180,6 +186,3 @@ async function checkUserLogin(server) {
 }
 
 console.log(`Server running on localhost:/${PORT}`);
-
-
-
