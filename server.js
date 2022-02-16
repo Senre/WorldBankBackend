@@ -37,7 +37,7 @@ app.post("/sessions", createSession);
 app.post("/register", registerUser);
 app.start({ port: PORT });
 
-async function createSession(server) {
+async function createSession(server, user_id) {
   const sessionId = v4.generate();
   await db.query(
     `INSERT INTO sessions (uuid, user_id, created_at) VALUES (?, ?, datetime('now'))`,
@@ -48,7 +48,8 @@ async function createSession(server) {
     ...(
       await db.query("SELECT * FROM users WHERE id = ?", [user_id])
     ).asObjects(),
-  ][0];
+  ];
+  // console.log(user_id);
 
   const expiryDate = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000);
   server.setCookie({
@@ -71,22 +72,22 @@ async function createSession(server) {
   });
 }
 
-// async function getCurrentUser(sessionId) {
-//   const [session] = await [
-//     ...db
-//       .query(
-//         `SELECT * FROM sessions WHERE JULIANDAY(datetime('now')) - JULIANDAY(created_at) < 7 AND uuid = ?`,
-//         [sessionId]
-//       )
-//       .asObjects(),
-//   ];
-//   const [user] = await [
-//     ...db
-//       .query("SELECT * FROM users WHERE id = ?", [session.user_id])
-//       .asObjects(),
-//   ];
-//   return user;
-// }
+async function getCurrentUser(sessionId) {
+  const [session] = await [
+    ...db
+      .query(
+        `SELECT * FROM sessions WHERE JULIANDAY(datetime('now')) - JULIANDAY(created_at) < 7 AND uuid = ?`,
+        [sessionId]
+      )
+      .asObjects(),
+  ];
+  const [user] = await [
+    ...db
+      .query("SELECT * FROM users WHERE id = ?", [session.user_id])
+      .asObjects(),
+  ];
+  return user;
+}
 
 async function showCountryData(server) {
   const { country } = await server.params;
@@ -151,21 +152,19 @@ async function showCountryData(server) {
 }
 
 async function registerUser(server) {
-  const { email, password } = await server.body;
+  const { username, password } = await server.body;
   const salt = await bcrypt.genSalt(8);
   const passwordEncrypted = await bcrypt.hash(password, salt);
   let [checkEmail] = [
     ...(
-      await db.query(`SELECT email FROM users WHERE email = ?`, [email])
+      await db.query(`SELECT email FROM users WHERE email = ?`, [username])
     ).asObjects(),
   ];
   if (checkEmail) {
     return server.json({ error: "User already exists" }, 400);
   } else {
-    const query =
-      (`INSERT INTO users (email, password, salt, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'))`,
-      [email, passwordEncrypted, salt]);
-    await db.query(query);
+    const query = `INSERT INTO users (email, password, salt, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'));`;
+    await db.query(query, [username, passwordEncrypted, salt]);
     return server.json({ success: "User registered successfully." }, 200);
   }
 }
@@ -193,11 +192,16 @@ async function checkUserLogin(server) {
       await db.query("SELECT * FROM users WHERE email = ?", [email])
     ).asObjects(),
   ];
+
+  console.log(checkEmail);
+  console.log("hello");
+
   if (checkEmail.length === 1) {
-    if (await bcrypt.compare(password, salt)) {
+    if (await bcrypt.compare(password, checkEmail[0].salt)) {
       createSession(server, checkEmail[0].id);
       return server.json(checkEmail[0], 200);
     } else {
+      console.log("test");
       server.json({ error: "Incorrect password" }, 400);
     }
   } else {
