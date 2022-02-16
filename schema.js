@@ -36,8 +36,7 @@ await db.query(
     indicator TEXT,
     start_year INTEGER NOT NULL,
     end_year INTEGER NOT NULL,
-    user_id INTEGER,
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    user_id INTEGER REFERENCES users(id)
   )`
 );
 
