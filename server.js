@@ -212,12 +212,18 @@ async function checkUserLogin(server) {
 
 async function addUserSearch(server) {
   const { user_id } = server.params;
-  const { country, indicator, start_year, end_year } = await server.body;
+  let { country, indicator, start_year, end_year } = await server.body;
   console.log(country, indicator, start_year, end_year);
+
+  if (country.length > 1) {
+    country = country.flat().reduce((acc, val) => acc + " vs " + val);
+  } else {
+    country = country[0];
+  }
 
   await db.query(
     "INSERT INTO searches (created_at, country, indicator, start_year, end_year, user_id) VALUES (datetime('now'), ?, ?, ?, ?, ?)",
-    [country[0], indicator[0], start_year, end_year, user_id]
+    [country, indicator[0], start_year, end_year, user_id]
   );
 
   server.json({ success: "search added" }, 200);
