@@ -165,7 +165,7 @@ async function registerUser(server) {
 
 async function getAllIndicators(server) {
   const response = await client.queryObject({
-    text: "SELECT DISTINCT IndicatorName FROM Indicators",
+    text: "SELECT DISTINCT IndicatorName FROM Indicators ORDER BY IndicatorName ASC",
   });
 
   server.json(response, 200);
@@ -173,7 +173,7 @@ async function getAllIndicators(server) {
 
 async function getAllCountries(server) {
   const response = await client.queryObject({
-    text: "SELECT DISTINCT ShortName FROM Countries",
+    text: "SELECT DISTINCT ShortName FROM Countries ORDER BY ShortName ASC",
   });
 
   server.json(response, 200);
