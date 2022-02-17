@@ -32,6 +32,7 @@ app.use(abcCors(corsInputs));
 app.get("/:country", showCountryData);
 app.get("/indicators", getAllIndicators);
 app.get("/countries", getAllCountries);
+app.get("/searches/:user_id", getUserSearches);
 app.post("/login", checkUserLogin);
 app.post("/sessions", createSession);
 app.post("/register", registerUser);
@@ -51,7 +52,6 @@ async function createSession(server, user_id) {
     ).asObjects(),
   ];
 
-  console.log("session");
   console.log(user);
 
   const expiryDate = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -73,6 +73,17 @@ async function createSession(server, user_id) {
     expires: expiryDate,
     path: "/",
   });
+}
+
+async function findCurrentUserId(email) {
+  const checkEmail = [
+    ...(
+      await db.query("SELECT * FROM users WHERE email = ?", [email])
+    ).asObjects(),
+  ];
+
+  console.log(checkEmail[0].id);
+  return checkEmail[0].id;
 }
 
 async function showCountryData(server) {
@@ -153,24 +164,25 @@ async function registerUser(server) {
   } else {
     const query = `INSERT INTO users (email, password, salt, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'))`;
     await db.query(query, [username, passwordEncrypted, salt]);
+    createSession(server, await findCurrentUserId(username));
     return server.json({ success: "User registered successfully." }, 200);
   }
 }
 
 async function getAllIndicators(server) {
-  const response = await client.queryObject({
-    text: "SELECT DISTINCT IndicatorName FROM Indicators ORDER BY IndicatorName ASC",
-  });
+  let response = await client.queryArray(
+    "SELECT DISTINCT IndicatorName FROM Indicators ORDER BY IndicatorName ASC"
+  );
 
-  server.json(response, 200);
+  server.json(response.rows.flat(), 200);
 }
 
 async function getAllCountries(server) {
-  const response = await client.queryObject({
-    text: "SELECT DISTINCT ShortName FROM Countries ORDER BY ShortName ASC",
-  });
+  let response = await client.queryArray(
+    "SELECT DISTINCT ShortName FROM Countries ORDER BY ShortName ASC"
+  );
 
-  server.json(response, 200);
+  server.json(response.rows.flat(), 200);
 }
 
 async function checkUserLogin(server) {
@@ -212,6 +224,21 @@ async function addUserSearch(server) {
   );
 
   server.json({ success: "search added" }, 200);
+}
+
+async function getUserSearches(server) {
+  const { user_id } = server.params;
+
+  const response = [
+    ...(
+      await db.query(
+        "SELECT created_at, country, indicator, start_year, end_year FROM searches WHERE user_id = ?",
+        [user_id]
+      )
+    ).asObjects(),
+  ];
+
+  return server.json(response);
 }
 
 console.log(`Server running on localhost:/${PORT}`);
