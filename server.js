@@ -33,6 +33,7 @@ app.get("/:country", showCountryData);
 app.get("/indicators", getAllIndicators);
 app.get("/countries", getAllCountries);
 app.get("/searches/:user_id", getUserSearches);
+app.get("/searches", getAllSearches);
 app.post("/login", checkUserLogin);
 app.post("/sessions", createSession);
 app.post("/register", registerUser);
@@ -237,6 +238,12 @@ async function getUserSearches(server) {
       )
     ).asObjects(),
   ];
+
+  return server.json(response);
+}
+
+async function getAllSearches(server) {
+  const response = [...(await db.query("SELECT * FROM searches")).asObjects()];
 
   return server.json(response);
 }
