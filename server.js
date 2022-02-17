@@ -80,7 +80,7 @@ async function showCountryData(server) {
   const countryDecoded = decodeURIComponent(country);
 
   const { indicator, startYear, endYear } = await server.queryParams;
-  const indicatorDecoded = `%${decodeURIComponent(indicator)}%`;
+  const indicatorDecoded = `%${indicator}%`;
 
   const countryExists = await client.queryObject({
     text: "SELECT ShortName FROM Countries WHERE ShortName = $1",
