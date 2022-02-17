@@ -70,7 +70,7 @@ async function createSession(server, user_id) {
   });
   server.setCookie({
     name: "email",
-    value: user.email,
+    value: user[0].email,
     expires: expiryDate,
     path: "/",
   });
