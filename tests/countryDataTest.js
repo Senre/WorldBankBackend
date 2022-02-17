@@ -165,18 +165,18 @@ Deno.test("Check for naming inconsistencies between tables", async () => {
   assertExists(countryData2.length);
 });
 
-// Deno.test(
-//   "Returns error when country exist, but no indicator results",
-//   async () => {
-//     const countryData = await network.fetchCountryData(
-//       "Afghanistan",
-//       "aaaaaaaaaaa",
-//       minYear,
-//       maxYear
-//     );
-//     console.log(countryData);
-//   }
-// );
+Deno.test(
+  "Returns error when country exist, but no indicator results",
+  async () => {
+    const countryData = await network.fetchCountryData(
+      "Afghanistan",
+      "aaaaaaaaaaa",
+      minYear,
+      maxYear
+    );
+    console.log(countryData);
+  }
+);
 
 // error when country but no results
 // try sql injection
