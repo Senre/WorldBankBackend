@@ -8,3 +8,4 @@ wbd-db/Indicators.csv
 .gitignore
 wbd-db/Series.csv
 wbd-db/SeriesNotes.csv
+wbd-db.db
