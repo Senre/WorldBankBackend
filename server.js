@@ -31,9 +31,11 @@ const corsInputs = {
 app.use(abcCors(corsInputs));
 app.get("/:country", showCountryData);
 app.get("/indicators", getAllIndicators);
+app.get("/countries", getAllCountries);
 app.post("/login", checkUserLogin);
 app.post("/sessions", createSession);
 app.post("/register", registerUser);
+app.post("/searches/:user_id", addUserSearch);
 app.start({ port: PORT });
 
 async function createSession(server, user_id) {
@@ -48,44 +50,29 @@ async function createSession(server, user_id) {
       await db.query("SELECT * FROM users WHERE id = ?", [user_id])
     ).asObjects(),
   ];
-  // console.log(user_id);
+
+  console.log("session");
+  console.log(user);
 
   const expiryDate = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000);
   server.setCookie({
     name: "sessionId",
     value: sessionId,
     expires: expiryDate,
-    path: "/home",
+    path: "/",
   });
   server.setCookie({
     name: "user_id",
     value: user_id,
     expires: expiryDate,
-    path: "/home",
+    path: "/",
   });
   server.setCookie({
     name: "email",
     value: user.email,
     expires: expiryDate,
-    path: "/home",
+    path: "/",
   });
-}
-
-async function getCurrentUser(sessionId) {
-  const [session] = await [
-    ...db
-      .query(
-        `SELECT * FROM sessions WHERE JULIANDAY(datetime('now')) - JULIANDAY(created_at) < 7 AND uuid = ?`,
-        [sessionId]
-      )
-      .asObjects(),
-  ];
-  const [user] = await [
-    ...db
-      .query("SELECT * FROM users WHERE id = ?", [session.user_id])
-      .asObjects(),
-  ];
-  return user;
 }
 
 async function showCountryData(server) {
@@ -164,7 +151,7 @@ async function registerUser(server) {
   if (checkEmail) {
     return server.json({ error: "User already exists" }, 400);
   } else {
-    const query = `INSERT INTO users (email, password, salt, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'));`;
+    const query = `INSERT INTO users (email, password, salt, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'))`;
     await db.query(query, [username, passwordEncrypted, salt]);
     return server.json({ success: "User registered successfully." }, 200);
   }
@@ -172,7 +159,15 @@ async function registerUser(server) {
 
 async function getAllIndicators(server) {
   const response = await client.queryObject({
-    text: "SELECT DISTINCT IndicatorName FROM Indicators",
+    text: "SELECT DISTINCT IndicatorName FROM Indicators ORDER BY IndicatorName ASC",
+  });
+
+  server.json(response, 200);
+}
+
+async function getAllCountries(server) {
+  const response = await client.queryObject({
+    text: "SELECT DISTINCT ShortName FROM Countries ORDER BY ShortName ASC",
   });
 
   server.json(response, 200);
@@ -187,19 +182,36 @@ async function checkUserLogin(server) {
   ];
 
   console.log(checkEmail);
-  console.log("hello");
 
   if (checkEmail.length === 1) {
-    if (await bcrypt.compare(password, checkEmail[0].salt)) {
+    if (await bcrypt.compare(password, checkEmail[0].password)) {
       createSession(server, checkEmail[0].id);
       return server.json(checkEmail[0], 200);
     } else {
-      console.log("test");
       server.json({ error: "Incorrect password" }, 400);
     }
   } else {
     server.json({ error: "User not found." }, 404);
   }
+}
+
+async function addUserSearch(server) {
+  const { user_id } = server.params;
+  let { country, indicator, start_year, end_year } = await server.body;
+  console.log(country, indicator, start_year, end_year);
+
+  if (country.length > 1) {
+    country = country.flat().reduce((acc, val) => acc + " vs " + val);
+  } else {
+    country = country[0];
+  }
+
+  await db.query(
+    "INSERT INTO searches (created_at, country, indicator, start_year, end_year, user_id) VALUES (datetime('now'), ?, ?, ?, ?, ?)",
+    [country, indicator[0], start_year, end_year, user_id]
+  );
+
+  server.json({ success: "search added" }, 200);
 }
 
 console.log(`Server running on localhost:/${PORT}`);

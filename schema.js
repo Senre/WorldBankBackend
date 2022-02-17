@@ -30,14 +30,13 @@ await db.query(
 
 await db.query(
   `CREATE TABLE searches (
-    id TEXT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME NOT NULL,
     country TEXT NOT NULL,
     indicator TEXT,
     start_year INTEGER NOT NULL,
     end_year INTEGER NOT NULL,
-    user_id INTEGER,
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    user_id INTEGER REFERENCES users(id)
   )`
 );
 
