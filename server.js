@@ -122,7 +122,7 @@ async function showCountryData(server) {
       server.json(
         {
           statusCode: 404,
-          message: "404: Not found. No data found with those restraints",
+          message: "404: Not Found. No data found with those restraints",
         },
         404
       );
