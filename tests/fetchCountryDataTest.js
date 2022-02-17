@@ -174,9 +174,22 @@ Deno.test(
       minYear,
       maxYear
     );
-    console.log(countryData);
+    assertEquals(
+      countryData.message,
+      "404: Not Found. No data found with those restraints"
+    );
   }
 );
 
-// error when country but no results
-// try sql injection
+Deno.test("SQL injections will fail", async () => {
+  const countryData = await network.fetchCountryData(
+    "Afghanistan",
+    "",
+    minYear,
+    "2015;SELECT * FROM countries"
+  );
+  assertEquals(
+    countryData.message,
+    'invalid input syntax for integer: "2015;SELECT * FROM countries"'
+  );
+});
