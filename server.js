@@ -121,10 +121,10 @@ async function showCountryData(server) {
     } else {
       server.json(
         {
-          statusCode: 204,
-          message: "204: No content. No data found with those restraints",
+          statusCode: 404,
+          message: "404: Not found. No data found with those restraints",
         },
-        204
+        404
       );
     }
   } else {
