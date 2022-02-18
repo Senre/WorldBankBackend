@@ -173,6 +173,9 @@ The country endpoint is required, and will give information about all available 
 
 Ex. /Afghanistan
 ```
+
+![Afghanistan](./assets/Afghanistan.png)
+
 You can input indicators and timeframes as query parameters to restrict the returned information. Without any the default parameters are 
 
 Indicator = ’’<br/>
@@ -190,6 +193,7 @@ After the country endpoint you can add an indicator query to find indicator info
 
 Ex. /Albania?indicator=urban%20population
 ```
+![Albania](./assets/Albania.png)
 
 ### Search for indicators in a specific timeframe
 
@@ -202,6 +206,8 @@ Ex. /Argentina?startYear=1990
       /Australia?endYear=2007
       /Bulgaria?startYear=1995&endYear=2010
 ```
+
+![Bulgaria](./assets/Bulgaria.png)
 
 You can combine all the queries as well
 
@@ -231,7 +237,9 @@ const { user_id } = server.params;
 
 ## Database Schema
 
+### Users Database
 
+![Users Database](./assets/usersdatabase.png)
 
 ## License 
 
