@@ -5,8 +5,14 @@ import { Client } from "https://deno.land/x/postgres@v0.15.0/mod.ts";
 import { v4 } from "https://deno.land/std/uuid/mod.ts";
 import inconsistentCountryNames from "./inconsistentCountryNames.js";
 
+import { config } from "https://deno.land/x/dotenv/mod.ts";
+
+const DENO_ENV = (await Deno.env.get("DENO_ENV")) ?? "development";
+
+config({ path: `./.env.${DENO_ENV}`, export: true });
+
 const app = new Application();
-const PORT = 80;
+const PORT = parseInt(Deno.env.get("PORT"));
 
 const config =
   "postgres://czreijar:TJ2StTuQIl2CoRoinQTwPxk8pBGfdf6t@kandula.db.elephantsql.com/czreijar";
