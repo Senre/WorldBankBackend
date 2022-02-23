@@ -6,7 +6,7 @@ import { v4 } from "https://deno.land/std/uuid/mod.ts";
 import inconsistentCountryNames from "./inconsistentCountryNames.js";
 
 const app = new Application();
-const PORT = 8080;
+const PORT = 80;
 
 const config =
   "postgres://czreijar:TJ2StTuQIl2CoRoinQTwPxk8pBGfdf6t@kandula.db.elephantsql.com/czreijar";
