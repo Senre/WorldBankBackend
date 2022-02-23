@@ -35,7 +35,7 @@ const corsInputs = {
     "User-Agent",
   ],
   credentials: true,
-  origin: /^.+localhost:(3000)$/,
+  origin: /^.+6216a4197becee3d8c2481d1--pedantic-johnson-3340c2.netlify.app$/,
 };
 
 app.use(abcCors(corsInputs));
