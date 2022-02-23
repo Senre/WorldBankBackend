@@ -14,9 +14,9 @@ config({ path: `./.env.${DENO_ENV}`, export: true });
 const app = new Application();
 const PORT = parseInt(Deno.env.get("PORT"));
 
-const config =
+const worldBankConfig =
   "postgres://czreijar:TJ2StTuQIl2CoRoinQTwPxk8pBGfdf6t@kandula.db.elephantsql.com/czreijar";
-const client = new Client(config);
+const client = new Client(worldBankConfig);
 
 const userDatabaseConfig =
   "postgres://cgfgilii:YQgWoyUWXmD0CWvww7Bs2QSWTJvFT14e@tyke.db.elephantsql.com/cgfgilii";
