@@ -36,6 +36,7 @@ const corsInputs = {
   ],
   credentials: true,
   origin: /^.+fkmt-world-bank.netlify.app$/,
+  exposedHeaders: ["set-cookie"],
 };
 
 app.use(abcCors(corsInputs));
