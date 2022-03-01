@@ -70,24 +70,18 @@ async function createSession(server, user_id) {
     value: sessionId,
     expires: expiryDate,
     path: "/",
-
-    secure: true,
   });
   server.setCookie({
     name: "user_id",
     value: user_id,
     expires: expiryDate,
     path: "/",
-
-    secure: true,
   });
   server.setCookie({
     name: "email",
     value: userRows.email,
     expires: expiryDate,
     path: "/",
-
-    secure: true,
   });
 }
 
