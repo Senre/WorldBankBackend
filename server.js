@@ -36,7 +36,6 @@ const corsInputs = {
   ],
   credentials: true,
   origin: /^.+fkmt-world-bank.netlify.app$/,
-  exposedHeaders: ["set-cookie"],
 };
 
 app.use(abcCors(corsInputs));
@@ -71,18 +70,24 @@ async function createSession(server, user_id) {
     value: sessionId,
     expires: expiryDate,
     path: "/",
+    sameSite: "none",
+    secure: true,
   });
   await server.setCookie({
     name: "user_id",
     value: user_id,
     expires: expiryDate,
     path: "/",
+    sameSite: "none",
+    secure: true,
   });
   await server.setCookie({
     name: "email",
     value: userRows.email,
     expires: expiryDate,
     path: "/",
+    sameSite: "none",
+    secure: true,
   });
 }
 
