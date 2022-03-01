@@ -70,7 +70,7 @@ async function createSession(server, user_id) {
     value: sessionId,
     expires: expiryDate,
     path: "/",
-    sameSite: "none",
+    sameSite: "lax",
     secure: true,
   });
   await server.setCookie({
@@ -78,7 +78,7 @@ async function createSession(server, user_id) {
     value: user_id,
     expires: expiryDate,
     path: "/",
-    sameSite: "none",
+    sameSite: "lax",
     secure: true,
   });
   await server.setCookie({
@@ -86,7 +86,7 @@ async function createSession(server, user_id) {
     value: userRows.email,
     expires: expiryDate,
     path: "/",
-    sameSite: "none",
+    sameSite: "lax",
     secure: true,
   });
 }
