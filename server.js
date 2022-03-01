@@ -6,6 +6,7 @@ import { v4 } from "https://deno.land/std/uuid/mod.ts";
 import inconsistentCountryNames from "./inconsistentCountryNames.js";
 
 import { config } from "https://deno.land/x/dotenv/mod.ts";
+<<<<<<< HEAD
 
 const DENO_ENV = (await Deno.env.get("DENO_ENV")) ?? "development";
 
@@ -17,6 +18,19 @@ const PORT = parseInt(Deno.env.get("PORT"));
 const worldBankConfig =
   "postgres://czreijar:TJ2StTuQIl2CoRoinQTwPxk8pBGfdf6t@kandula.db.elephantsql.com/czreijar";
 const client = new Client(worldBankConfig);
+=======
+
+const DENO_ENV = Deno.env.get("DENO_ENV") ?? "development";
+
+config({ path: `./.env.${DENO_ENV}`, export: true });
+
+const app = new Application();
+const PORT = 8080;
+
+const worldbankConfig =
+  "postgres://czreijar:TJ2StTuQIl2CoRoinQTwPxk8pBGfdf6t@kandula.db.elephantsql.com/czreijar";
+const client = new Client(worldbankConfig);
+>>>>>>> 5cf90ef2b31f5e00046202942646ada5aa6b0982
 
 const userDatabaseConfig =
   "postgres://cgfgilii:YQgWoyUWXmD0CWvww7Bs2QSWTJvFT14e@tyke.db.elephantsql.com/cgfgilii";
