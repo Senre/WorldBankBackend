@@ -35,7 +35,7 @@ const corsInputs = {
     "User-Agent",
   ],
   credentials: true,
-  origin: /^.+fkmt-world-bank.netlify.app$/,
+  origin: /^.+fkmt-world-bank.herokuapp.com$/,
 };
 
 app.use(abcCors(corsInputs));
