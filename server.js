@@ -65,28 +65,28 @@ async function createSession(server, user_id) {
   const [userRows] = user.rows;
 
   const expiryDate = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000);
-  await server.setCookie({
+  server.setCookie({
     name: "sessionId",
     value: sessionId,
     expires: expiryDate,
     path: "/",
-    sameSite: "none",
+
     secure: true,
   });
-  await server.setCookie({
+  server.setCookie({
     name: "user_id",
     value: user_id,
     expires: expiryDate,
     path: "/",
-    sameSite: "none",
+
     secure: true,
   });
-  await server.setCookie({
+  server.setCookie({
     name: "email",
     value: userRows.email,
     expires: expiryDate,
     path: "/",
-    sameSite: "none",
+
     secure: true,
   });
 }
